@@ -1,70 +1,106 @@
+![Terminal Velocity Logo](logo.png)
 # Terminal Velocity
 
-**Terminal Velocity** is a hyper-performance, native music sequencer that reimagines the traditional "Piano Roll" as a cascading "Matrix Rain" data stream.
+**Terminal Velocity** is a professional music tracker that combines the precision of traditional trackers with immersive Matrix-style visuals. Built entirely in **Rust** for maximum performance, it provides a modern interface for creating electronic music with real-time audio synthesis and visual feedback.
 
-Built entirely in **Rust**, it bypasses the browser and OS bloat to leverage the GPU for massive particle systems and the CPU for sub-millisecond audio latency. It is designed for electronic musicians and visualists who require precision, speed, and immersive aesthetics.
+![Terminal Velocity GUI](gui.png)
 
 ## ⚡ Concept
 
-In **Play Mode**, the sequencer is a generative art installation. MIDI notes fall like code in a terminal.
-In **Edit Mode**, the rain freezes. The falling glyphs become editable data nodes, allowing you to manipulate Note, Velocity, CC, and Duration directly within the data stream.
+In **Play Mode**, the sequencer displays a realistic Matrix rain effect with falling characters synchronized to your music. Each MIDI note triggers visual particles that cascade down the screen.
 
-## 🚀 Tech Stack (The "Bare Metal" Approach)
+In **Edit Mode**, the rain freezes and you can edit notes directly in the pattern grid. The interface provides detailed note information, velocity control, and CC parameters for precise sound design.
 
-This project rejects web technologies (DOM, GC, JavaScript) in favor of a pure systems-level architecture to ensure zero visual stutter and rock-solid timing.
+## 🚀 Tech Stack
 
-* **Core Language:** [Rust](https://www.rust-lang.org/) (Memory safety without Garbage Collection).
-* **Graphics Engine:** [WGPU](https://wgpu.rs/) (WebGPU Native).
-* Runs on **Vulkan** (Windows/Linux), **Metal** (macOS), or **DX12**.
-* Uses **Compute Shaders** to handle particle physics on the GPU, leaving the CPU free for audio.
+This project uses a pure systems-level architecture to ensure zero visual stutter and rock-solid timing.
 
+* **Core Language:** [Rust](https://www.rust-lang.org/) (Memory safety without Garbage Collection)
+* **Graphics Engine:** [Bevy](https://bevyengine.org/) with WGPU (WebGPU Native)
+* **Audio Backend:** [cpal](https://github.com/RustAudio/cpal) - Low-level audio device access
+* **UI Layer:** [egui](https://github.com/emilk/egui) - Immediate Mode GUI
+* **MIDI Support:** [midir](https://github.com/Boddlnagg/midir) - MIDI input/output
+* **Architecture:** Entity Component System (ECS) for efficient data processing
 
-* **Audio Backend:** [cpal](https://github.com/RustAudio/cpal).
-* Low-level access to the audio device (DAC).
-* Runs on a dedicated high-priority thread to prevent blocking.
+## 🎮 Controls
 
+### Navigation
+* **↑ ↓ ← →** : Move cursor in pattern editor
+* **SPACE** : Play/Stop playback
+* **ENTER** : Toggle Edit Mode
 
-* **UI Layer:** [egui](https://github.com/emilk/egui).
-* Immediate Mode GUI written in Rust.
-* No DOM, no HTML. The UI is rendered as a texture within the game loop (60Hz+).
+### Note Entry (Edit Mode)
+* **Z S X D C V G B H N J M ,** : Play notes (C to B)
+* **BACKSPACE/DELETE** : Delete note
+* **Mouse Click** : Place/select notes in pattern grid
 
-
-* **Architecture:** [Bevy ECS](https://bevyengine.org/) (Entity Component System).
-* Data-oriented design allows processing 10,000+ falling notes simultaneously with minimal CPU cache misses.
-
-
+### File Operations
+* **CTRL+S** : Save project
+* **CTRL+O** : Load project
 
 ## 🎛 Features
 
-* **Vertical Sequencer Flow:** Time flows from top to bottom.
-* **Matrix Rain Visualization:** Each MIDI event is a glowing character glyph.
-* **Live Editing:** Modify the "code" (notes) while the sequence runs.
-* **Multi-Channel Support:** Unlimited tracks/layers defined by X-axis position.
-* **MIDI Out / OSC:** Drives external hardware synths or DAW VSTs.
-* **Procedural Visuals:** Visual intensity reacts to Velocity and Note density.
+### Pattern Editor
+* **16 Channels** : Multi-track sequencing with independent instruments
+* **64 Rows per Pattern** : Flexible pattern length
+* **Detailed Note Display** : Shows note name, velocity, and CC values
+* **Visual Feedback** : Color-coded notes by instrument type
+* **Real-time Playback** : See your pattern play with visual playhead
+
+### Audio Engine
+* **4 Instrument Types** : Sine, Square, Saw, and Pulse waves
+* **Per-Channel Instruments** : Each track can use a different waveform
+* **Velocity Control** : 0-127 velocity range
+* **BPM Control** : Adjustable tempo (60-200 BPM)
+* **Real-time Synthesis** : Low-latency audio generation
+
+### Mixer
+* **16-Channel Mixer** : All channels visible side-by-side
+* **Volume Control** : Per-channel volume sliders
+* **Mute/Solo** : Individual track control
+* **Instrument Selection** : Change instrument per channel
+
+### Device Controls
+* **Filter** : Cutoff and Resonance controls
+* **Distortion** : Drive control
+* **ADSR Envelope** : Attack, Decay, Sustain, Release
+* **Effects** : Delay and Reverb
+
+### Visuals
+* **Matrix Rain Animation** : Realistic falling characters during playback
+* **Trailing Effects** : Characters fade with trailing glow
+* **Theme System** : 5 professional themes (Matrix, Cyberpunk, Monochrome, Neon, Professional)
+* **Color-Coded Notes** : Visual distinction by instrument type
+
+### User Interface
+* **Professional Design** : Minimal, clean interface
+* **Tooltips** : Hover hints explain all controls
+* **Settings Panel** : Theme selection and keyboard shortcuts
+* **File Dialogs** : Save/Load project dialogs
+* **MIDI Configuration** : MIDI device selection and status
 
 ## 🛠 Architecture Overview
 
-The application runs on two primary execution contexts to ensure audio stability:
+The application runs on multiple execution contexts to ensure audio stability:
 
 1. **The Audio Thread (Real-time priority):**
-* Cycles at hardware sample rate (e.g., 44.1kHz).
-* Reads from a lock-free Ring Buffer.
-* Strictly no memory allocation during playback to avoid pops/clicks.
-
+   * Cycles at hardware sample rate (44.1kHz)
+   * Uses lock-free channels for command passing
+   * No memory allocation during playback
 
 2. **The Main/Render Thread:**
-* Handles Input (Mouse/Keyboard).
-* Runs the ECS Systems (Physics, Logic).
-* Dispatches Compute Shaders to the GPU.
-* Draws the UI overlay via `egui`.
+   * Handles Input (Mouse/Keyboard/MIDI)
+   * Runs the ECS Systems (Playback, Editor)
+   * Renders UI overlay via `egui`
+   * Manages Matrix visual effects
 
-
+3. **MIDI Thread:**
+   * Listens for MIDI input events
+   * Passes events to main thread via channels
 
 ## 📦 Building from Source
 
 **Prerequisites:**
-
 * [Rust Toolchain](https://rustup.rs/) (latest stable)
 * Vulkan SDK (Windows/Linux) or Xcode Command Line Tools (macOS)
 
@@ -76,16 +112,34 @@ cd terminal-velocity
 # Run in Release mode (CRITICAL for audio performance)
 # Debug builds will be too slow for real-time DSP
 cargo run --release
-
 ```
+
+## 🎨 Themes
+
+Terminal Velocity includes 5 professional themes:
+* **Matrix** : Classic green on black (default)
+* **Cyberpunk** : Magenta/cyan/yellow color scheme
+* **Monochrome** : White/gray professional look
+* **Neon** : Cyan/magenta/yellow vibrant colors
+* **Professional** : Blue/orange modern design
+
+Change themes via **SETTINGS → Settings → Theme**
 
 ## 🗺 Roadmap
 
-* [ ] **Core:** Basic WGPU render loop & Windowing.
-* [ ] **Audio:** Integration of `cpal` and basic MIDI clock.
-* [ ] **Visuals:** Instanced mesh rendering for "Glyphs" (The Rain).
-* [ ] **UI:** `egui` integration for track selection.
-* [ ] **Editor:** Mouse interaction (Click to add/remove glyphs).
+* [x] **Core:** WGPU render loop & Windowing
+* [x] **Audio:** Real-time synthesis with cpal
+* [x] **Visuals:** Matrix Rain particle system
+* [x] **UI:** egui integration with professional design
+* [x] **Editor:** Pattern editing with mouse/keyboard
+* [x] **Persistence:** Save/Load sequences to JSON
+* [x] **Mixer:** 16-channel mixer with volume/mute/solo
+* [x] **Themes:** Multiple color themes
+* [x] **MIDI:** MIDI input support
+* [x] **Device Controls:** Filter, distortion, ADSR, effects
+* [ ] **MIDI Output:** Send MIDI to external devices
+* [ ] **Pattern Chain:** Multiple patterns in sequence
+* [ ] **Export:** Audio export to WAV/MP3
 
 ## 👤 Author
 

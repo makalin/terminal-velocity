@@ -1,0 +1,24 @@
+[package]
+name = "terminal_velocity"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = "0.13" # Using a known stable version roughly compatible with current ecosystem
+bevy_egui = "0.27" # Compatible with Bevy 0.13
+cpal = "0.15"
+rand = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+midir = "0.9"
+crossbeam-channel = "0.5"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+opt-level = 3
+lto = true
